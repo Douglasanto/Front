@@ -46,7 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonalAddressScreen(
-    onNavigateToSocioEconomicScreen: () -> Unit,
+    onNavigateToSocioEconomic: () -> Unit,
     onBack: () -> Unit
 ) {
     var cep by remember { mutableStateOf("") }
@@ -257,7 +257,7 @@ fun PersonalAddressScreen(
 
         Button(
             onClick = {
-                onNavigateToSocioEconomicScreen()
+                onNavigateToSocioEconomic()
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,

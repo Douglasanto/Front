@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Front</string>
+    <string name="home">Home</string>
+    <string name="avaliacoes">Avaliações</string>
+    <string name="mensagens">Mensagens</string>
+    <string name="perfil">Perfil</string>
 </resources>

@@ -51,7 +51,7 @@ import androidx.navigation.NavHostController
 
 @Composable
 fun PersonScreen(
-    onNavigateToPersonalAddressScreen: () -> Unit,
+    onNavigateToAddress: () -> Unit,
     onBack: () -> Unit
 ) {
     var nomeSocial by remember { mutableStateOf("") }
@@ -297,7 +297,7 @@ fun PersonScreen(
 
         Button(
             onClick = {
-                onNavigateToPersonalAddressScreen()
+                onNavigateToAddress()
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,

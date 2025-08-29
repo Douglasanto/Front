@@ -24,15 +24,27 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.front.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
     onNavigateToSignUp: () -> Unit,
+    onLoginSuccess: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
     var senhaVisivel by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        email = "usuario@teste.com"
+        senha = "123456"
+    }
+
 
     Column(
         modifier = Modifier
@@ -68,9 +80,13 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Campo de Email
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = {
+                email = it
+                errorMessage = null // Limpa o erro quando o usuário digita
+            },
             label = { Text("Email ou Telefone") },
             leadingIcon = {
                 Icon(Icons.Filled.Email, contentDescription = null)
@@ -78,14 +94,19 @@ fun LoginScreen(
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(8.dp),
+            isError = errorMessage != null
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        // Campo de Senha
         OutlinedTextField(
             value = senha,
-            onValueChange = { senha = it },
+            onValueChange = {
+                senha = it
+                errorMessage = null // Limpa o erro quando o usuário digita
+            },
             label = { Text("Senha") },
             leadingIcon = {
                 Icon(Icons.Filled.Lock, contentDescription = null)
@@ -102,8 +123,21 @@ fun LoginScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(8.dp),
+            isError = errorMessage != null
         )
+
+        // Exibe mensagem de erro se existir
+        errorMessage?.let {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp)
+            )
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -125,11 +159,20 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
+
+
         Button(
             onClick = {
-                isLoading = true
-                // Implemente lógica de login
-                // onLoginSuccess() quando completar
+                if (email.isNotBlank() && senha.isNotBlank()) {
+                    isLoading = true
+                    CoroutineScope(Dispatchers.Main).launch {
+                        delay(1000)
+                        onLoginSuccess()
+                        isLoading = false
+                    }
+                } else {
+                    errorMessage = "Preencha todos os campos"
+                }
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
@@ -141,11 +184,19 @@ fun LoginScreen(
             enabled = !isLoading
         ) {
             if (isLoading) {
-                CircularProgressIndicator(color = Color.White)
+                CircularProgressIndicator(
+                    color = Color.White,
+                    strokeWidth = 2.dp,
+                    modifier = Modifier.size(24.dp)
+                )
             } else {
-                Text("Entrar")
+                Text(
+                    text = "Entrar",
+                    fontSize = 16.sp
+                )
             }
         }
+
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -173,4 +224,13 @@ fun LoginScreen(
             )
         }
     }
+}
+
+// Funções auxiliares para validação
+private fun isValidEmail(email: String): Boolean {
+    return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+}
+
+private fun isValidPhone(phone: String): Boolean {
+    return android.util.Patterns.PHONE.matcher(phone).matches()
 }
