@@ -1,4 +1,4 @@
-package br.com.front.screens.app
+package br.com.front.screens.app.Mensagem
 
 import BottomNavigationBar
 import androidx.compose.foundation.background
@@ -12,16 +12,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 
 @Composable
 fun MensagensScreen(
     navController: NavHostController,
 ) {
+
+    val context = LocalContext.current
+
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) },
         containerColor = Color.White,
@@ -77,10 +86,33 @@ fun MensagensScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                OpcaoBotao(texto = "Dúvidas Frequentes")
-                OpcaoBotao(texto = "Conversar com Atendente")
-                OpcaoBotao(texto = "Enviar Feedback")
-                OpcaoBotao(texto = "Enviar Sugestão")
+                OpcaoBotao(
+                    texto = "Dúvidas Frequentes",
+                    onClick = {
+                        navController.navigate("duvidas_frequentes")
+                    }
+                )
+
+                OpcaoBotao(
+                    texto = "Conversar com Atendente",
+                    onClick = {
+                        navController.navigate("chat_atendente")
+                    }
+                )
+
+                OpcaoBotao(
+                    texto = "Enviar Feedback",
+                    onClick = {
+                        navController.navigate("formulario_mensagem/feedback")
+                    }
+                )
+
+                OpcaoBotao(
+                    texto = "Enviar Sugestão",
+                    onClick = {
+                        navController.navigate("formulario_mensagem/sugestao")
+                    }
+                )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -132,9 +164,9 @@ fun MensagemCaixa(titulo: String, conteudo: String, data: String) {
 }
 
 @Composable
-fun OpcaoBotao(texto: String) {
+fun OpcaoBotao(texto: String, onClick: () -> Unit = {}) {
     Button(
-        onClick = {  },
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
@@ -155,4 +187,39 @@ fun OpcaoBotao(texto: String) {
             modifier = Modifier.padding(vertical = 8.dp)
         )
     }
+}
+
+@Composable
+fun MensagensNavGraph(navController: NavHostController) {
+    NavHost(
+        navController = navController,
+        startDestination = "mensagens_principal"
+    ) {
+        composable("mensagens_principal") {
+            MensagensScreen(navController = navController)
+        }
+        composable("duvidas_frequentes") {
+            DuvidasFrequentesScreen(navController = navController)
+        }
+        composable("chat_atendente") {
+            ChatAtendenteScreen(navController = navController)
+        }
+        composable(
+            "formulario_mensagem/{tipo}",
+            arguments = listOf(navArgument("tipo") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val tipo = backStackEntry.arguments?.getString("tipo") ?: ""
+            FormularioMensagemScreen(
+                navController = navController,
+                tipoMensagem = tipo
+            )
+        }
+    }
+}
+
+@Preview()
+@Composable
+fun MensagensScreenPreview() {
+    val navController = rememberNavController()
+    MensagensNavGraph(navController = navController)
 }

@@ -23,26 +23,40 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.front.R
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import br.com.front.ui.viewmodel.AuthViewModel
+import br.com.front.ui.viewmodel.LoginState
 
 @Composable
 fun LoginScreen(
     onNavigateToSignUp: () -> Unit,
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: (String?) -> Unit,
+    viewModel: AuthViewModel = viewModel()
 ) {
     var email by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
     var senhaVisivel by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(Unit) {
-        email = "usuario@teste.com"
-        senha = "123456"
+    val loginState by viewModel.loginState.collectAsState()
+
+    val fakeUsers = listOf(
+        "admin@email.com" to "admin123",
+        "usuario@teste.com" to "senha123",
+        "teste@front.com" to "teste123"
+    )
+
+    LaunchedEffect(loginState) {
+        when (val state = loginState) {
+            is LoginState.Success -> {
+                onLoginSuccess(state.user.nome)
+            }
+            is LoginState.Error -> {
+                errorMessage = state.message
+            }
+            else -> {}
+        }
     }
 
 
@@ -85,7 +99,7 @@ fun LoginScreen(
             value = email,
             onValueChange = {
                 email = it
-                errorMessage = null // Limpa o erro quando o usuário digita
+                errorMessage = null
             },
             label = { Text("Email ou Telefone") },
             leadingIcon = {
@@ -164,12 +178,7 @@ fun LoginScreen(
         Button(
             onClick = {
                 if (email.isNotBlank() && senha.isNotBlank()) {
-                    isLoading = true
-                    CoroutineScope(Dispatchers.Main).launch {
-                        delay(1000)
-                        onLoginSuccess()
-                        isLoading = false
-                    }
+                    viewModel.login(email, senha)
                 } else {
                     errorMessage = "Preencha todos os campos"
                 }
@@ -181,9 +190,9 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            enabled = !isLoading
+            enabled = loginState !is LoginState.Loading
         ) {
-            if (isLoading) {
+            if (loginState is LoginState.Loading) {
                 CircularProgressIndicator(
                     color = Color.White,
                     strokeWidth = 2.dp,
@@ -226,7 +235,6 @@ fun LoginScreen(
     }
 }
 
-// Funções auxiliares para validação
 private fun isValidEmail(email: String): Boolean {
     return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
 }

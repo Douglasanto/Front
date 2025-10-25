@@ -8,10 +8,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun GreetingSection() {
+fun GreetingSection(name: String) {
     Column {
         Text(
-            text = "Olá, Saulo",
+            text = "Olá, $name",
             color = Color(0xFF2D6CDF),
             fontSize = 30.sp,
             fontWeight = FontWeight.Bold

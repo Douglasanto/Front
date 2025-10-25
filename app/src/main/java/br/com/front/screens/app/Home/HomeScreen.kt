@@ -13,9 +13,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import br.com.front.screens.app.Mensagem.ChatAtendenteScreen
+import androidx.compose.runtime.collectAsState
+import br.com.front.data.session.UserSession
+import android.util.Log
 
 
 @Composable
@@ -35,7 +40,9 @@ fun HomeScreen(
                 .background(Color.White)
                 .padding(16.dp)
         ) {
-            GreetingSection()
+            val user = UserSession.user.collectAsState().value
+            Log.d("HOME", "user from session name=${user?.nome} id=${user?.id}")
+            GreetingSection(name = user?.nome ?: "")
             Spacer(modifier = Modifier.height(16.dp))
             SearchBar()
             Spacer(modifier = Modifier.height(16.dp))
@@ -45,3 +52,5 @@ fun HomeScreen(
         }
     }
 }
+
+

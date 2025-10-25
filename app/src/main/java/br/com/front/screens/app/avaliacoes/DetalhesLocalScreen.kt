@@ -16,6 +16,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import br.com.front.data.session.EvaluationSession
+import br.com.front.data.session.UserSession
+import br.com.front.screens.app.avaliacoes.model.Evaluation
+import br.com.front.data.session.SelectedPlaceSession
+import br.com.front.navigation.Screens
 
 
 // Modelo de dados para Place (deve estar em um arquivo separado normalmente)
@@ -60,9 +65,21 @@ fun DetalhesLocalScreen(
     navController: NavHostController,
     onBack: () -> Unit = { navController.popBackStack() }
 ) {
-    // Encontra o local correspondente ou retorna null
-    val place = remember(placeId) {
-        samplePlaces.find { it.id == placeId }
+    // Primeiro tenta usar o local selecionado via sessão (resultado da API Nearby)
+    val selected = remember { SelectedPlaceSession.place }
+    // Fallback para mocks existentes se nada foi selecionado
+    val place = remember(placeId, selected) {
+        if (selected != null) {
+            Place(
+                id = placeId ?: (selected.nome ?: "local"),
+                name = selected.nome,
+                address = selected.endereco ?: "",
+                openingHours = "",
+                description = ""
+            )
+        } else {
+            samplePlaces.find { it.id == placeId }
+        }
     }
 
     // Se não encontrar o local, volta para a tela anterior
@@ -172,7 +189,25 @@ fun DetalhesLocalScreen(
 
                 // Botão para enviar avaliações
                 Button(
-                    onClick = onBack,
+                    onClick = {
+                        val currentUser = UserSession.user.value
+                        if (currentUser != null) {
+                            val eval = Evaluation(
+                                userId = currentUser.id,
+                                placeId = place.id,
+                                parking = accessibilityRatings.parking,
+                                mainEntrance = accessibilityRatings.mainEntrance,
+                                internalCirculation = accessibilityRatings.internalCirculation,
+                                bathrooms = accessibilityRatings.bathrooms,
+                                service = accessibilityRatings.service,
+                                timestamp = System.currentTimeMillis()
+                            )
+                            EvaluationSession.addEvaluation(eval)
+                        }
+                        // Limpa seleção e retorna para lista de avaliações
+                        SelectedPlaceSession.clear()
+                        navController.popBackStack(Screens.Avaliacoes.route, false)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp)
